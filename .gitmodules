@@ -1,0 +1,3 @@
+[submodule "external/mosaicraft"]
+	path = external/mosaicraft
+	url = https://github.com/hinanohart/mosaicraft.git

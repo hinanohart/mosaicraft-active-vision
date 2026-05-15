@@ -75,7 +75,7 @@ These are recorded so that a fresh Claude session can't re-litigate them.
 | `tests/test_metrics.py` | ⬜ | golden hash on tiny scene | ⬜ |
 | `experiments/benchmark_phase1.py` | ⬜ | 4 ablations | ⬜ |
 | `.github/workflows/ci.yml` | ⬜ | ruff + mypy + pytest + license check | ⬜ |
-| `external/mosaicraft/` (submodule) | ⬜ | upstream pinned to commit | n/a |
+| `external/mosaicraft/` (submodule) | ✅ | pinned to `2918137` (v0.3.2-32-g2918137) | n/a |
 
 ## Step plan (commit-by-commit, atomic so `/compact` is safe)
 
@@ -84,8 +84,8 @@ Every step ends with a git commit so resuming requires only
 
 | # | Subject | Commit message head |
 |---|---|---|
-| 1 | Repo skeleton + 3 SIGNED decisions + PROGRESS.md | `init: skeleton, MIT license, signed decisions 001-003` |
-| 2 | Add mosaicraft as git submodule (Phase 1 reuse) | `add mosaicraft submodule at external/mosaicraft` |
+| 1 ✅ | Repo skeleton + 3 SIGNED decisions + PROGRESS.md | `init: skeleton, MIT license, signed decisions 001-003` (commit `d1b8886`) |
+| 2 ✅ | Add mosaicraft as git submodule (Phase 1 reuse) | `add mosaicraft submodule at external/mosaicraft, pinned to 2918137` |
 | 3 | Implement `cost.py` (Oklab + feature + saliency) | `feat(cost): Oklab perceptual distance + mosaicraft wrappers` |
 | 4 | Implement `matching.py` (log-domain Sinkhorn) | `feat(matching): log-domain Sinkhorn-OT, numpy + opt torch` |
 | 5 | Implement `metrics.py` (M1) | `feat(metrics): mosaic_ssim_gain primary DoD` |

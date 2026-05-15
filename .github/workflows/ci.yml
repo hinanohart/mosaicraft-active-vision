@@ -1,0 +1,88 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-type-test:
+    name: ${{ matrix.os }} · py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - name: Check out repo (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install package and dev extras
+        run: |
+          python -m pip install --upgrade pip
+          # mosaicraft is intentionally NOT pip-installed here — it
+          # ships opencv-python while this repo pins
+          # opencv-python-headless and they collide on cv2.
+          pip install -e ".[dev,bench]"
+
+      - name: Lint (ruff)
+        run: ruff check src tests experiments
+
+      - name: Type check (mypy on package)
+        run: mypy src/mosaicraft_active_vision
+
+      - name: Unit + property tests
+        env:
+          PYTHONPATH: src:external/mosaicraft/src
+        run: pytest tests/ -q
+
+      - name: License sanity (MIT header present)
+        run: |
+          test -f LICENSE
+          grep -q "MIT License" LICENSE
+
+      - name: Phase-1 benchmark smoke run (1 target, 4 NBV steps)
+        env:
+          PYTHONPATH: src:external/mosaicraft/src
+          MOSAICRAFT_AV_BENCH_SMOKE: "1"
+        run: python experiments/benchmark_phase1.py
+
+  baseline-diff:
+    name: Baseline JSON sanity
+    runs-on: ubuntu-latest
+    needs: lint-type-test
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baseline JSON is non-empty and well-formed
+        run: |
+          python -c "
+          import json, sys, pathlib
+          p = pathlib.Path('experiments/results/phase1_baseline_2026-05-16.json')
+          assert p.is_file(), f'baseline missing: {p}'
+          d = json.loads(p.read_text())
+          assert d['schema_version'] == 1, d
+          assert d['summary'], 'empty summary'
+          # A1_saliency must outperform A1_random in the committed baseline.
+          s = d['summary']
+          assert s['A1_saliency']['mean_final_ssim'] > s['A1_random']['mean_final_ssim'], \
+              ('A1 gate broken in committed baseline', s)
+          print('OK', list(s.keys()))
+          "

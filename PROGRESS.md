@@ -5,8 +5,8 @@ memory at any moment. This file, plus `decision/`, plus `git log`, must
 contain enough state to fully resume work without re-asking the user
 anything. Update this file at the end of every step.
 
-**Last update:** 2026-05-16 — step 8 Phase-1 benchmark + 4 ablations
-reported in `decision/004-phase1-findings.md`.
+**Last update:** 2026-05-16 — step 9 CI workflow in place; lint+type+test
+green locally (45/45, mypy clean, ruff clean).
 **Project root:** `/home/runza/oss/mosaicraft-active-vision/`
 **Upstream (R17 reuse target):** `/home/runza/oss/mosaicraft/` (will be
 git submoduled into `external/mosaicraft/`).
@@ -78,7 +78,7 @@ These are recorded so that a fresh Claude session can't re-litigate them.
 | `tests/test_cost.py` | ✅ | Oklab + cost matrix sanity | n/a |
 | `experiments/benchmark_phase1.py` | ✅ | 4 ablations, runs end-to-end <2 min on CPU | ✅ (manual driver) |
 | `experiments/results/phase1_*.json` | ✅ | baseline run snapshot (see decision/004) | n/a |
-| `.github/workflows/ci.yml` | ⬜ | ruff + mypy + pytest + license check | ⬜ |
+| `.github/workflows/ci.yml` | ✅ | py3.10/3.11/3.12 · ruff + mypy + pytest + license + smoke bench | n/a |
 | `external/mosaicraft/` (submodule) | ✅ | pinned to `2918137` (v0.3.2-32-g2918137) | n/a |
 
 ## Step plan (commit-by-commit, atomic so `/compact` is safe)
@@ -96,7 +96,7 @@ Every step ends with a git commit so resuming requires only
 | 6 ✅ | Implement `nbv.py` (NBV loop) | `feat(nbv): NBV loop + Random / SaliencyBiased baselines` |
 | 7 ✅ | Tests (45/45 passing) | `test: Sinkhorn marginal + metrics golden hash + cost sanity` |
 | 8 ✅ | Phase-1 benchmark + 4 ablations + decision/004 | `bench: phase-1 + 4 ablations + decision/004 findings` |
-| 9 | CI workflow | `ci: ruff + mypy + pytest on push/PR` |
+| 9 ✅ | CI workflow (ruff + mypy + pytest + smoke bench) | `ci: ruff + mypy + pytest + smoke bench on push/PR` |
 | 10 | `gh repo create` + first push | n/a (no commit; remote operation) |
 
 ## Where each user instruction lives (R16 audit trail)

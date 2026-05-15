@@ -43,12 +43,8 @@ from mosaicraft_active_vision.cost import (
     compute_tile_oklab_means,
     extract_features,
 )
-
-_ = compute_saliency_weights  # keep formatter from pruning the import
 from mosaicraft_active_vision.matching import argmax_assignment, sinkhorn_ot
-from mosaicraft_active_vision.metrics import (
-    mosaic_ssim_gain,
-)
+from mosaicraft_active_vision.metrics import mosaic_ssim_gain
 from mosaicraft_active_vision.nbv import (
     MosaicSsimGainStrategy,
     RandomStrategy,
@@ -271,11 +267,11 @@ def build_mosaic_hungarian(
         # Pad with high-cost columns so Hungarian has enough tiles.
         pad = np.full((n, n - m), float(cost.max()) + 1.0)
         cost_padded = np.concatenate([cost, pad], axis=1)
-        rows, cols = linear_sum_assignment(cost_padded)
+        _, cols = linear_sum_assignment(cost_padded)
         # Cells whose Hungarian choice is a padding column re-pick best real tile.
         assignment = np.where(cols < m, cols, np.argmin(cost, axis=1))
     else:
-        rows, cols = linear_sum_assignment(cost)
+        _, cols = linear_sum_assignment(cost)
         assignment = cols
     return _paste_tiles(tiles, np.asarray(assignment, dtype=np.int64))
 
@@ -309,11 +305,18 @@ def run_condition(
     scene: ToyScene,
     cfg: BuilderConfig,
     rng_seed: int,
+    max_steps: int = MAX_NBV_STEPS,
 ) -> ConditionResult:
     if matcher == "sinkhorn":
-        builder = lambda tiles, tgt: build_mosaic_sinkhorn(tiles, tgt, cfg)
+
+        def builder(tiles: list[NDArray], tgt: NDArray) -> NDArray:
+            return build_mosaic_sinkhorn(tiles, tgt, cfg)
+
     elif matcher == "hungarian":
-        builder = lambda tiles, tgt: build_mosaic_hungarian(tiles, tgt, cfg)
+
+        def builder(tiles: list[NDArray], tgt: NDArray) -> NDArray:
+            return build_mosaic_hungarian(tiles, tgt, cfg)
+
     else:
         raise ValueError(f"unknown matcher {matcher!r}")
 
@@ -339,7 +342,7 @@ def run_condition(
         tile_extractor=scene.tiles_from_observations,
         mosaic_builder=builder,
         strategy=strategy,
-        max_steps=MAX_NBV_STEPS,
+        max_steps=max_steps,
         rng=np.random.default_rng(seed=rng_seed),
     )
     elapsed = time.perf_counter() - t0
@@ -420,10 +423,12 @@ def run_phase1(
     scene_seed: int = 0,
     target_seed: int = 1,
     nbv_seed: int = 7,
+    n_targets: int = N_TARGETS,
+    max_nbv_steps: int = MAX_NBV_STEPS,
 ) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
     scene = ToyScene(rng_seed=scene_seed)
-    targets = make_targets(target_seed, scene)
+    targets = make_targets(target_seed, scene, n=n_targets)
     matrix = ablation_matrix()
 
     results: list[ConditionResult] = []
@@ -439,6 +444,7 @@ def run_phase1(
                 scene=scene,
                 cfg=cond["cfg"],
                 rng_seed=nbv_seed + 31 * t_idx,
+                max_steps=max_nbv_steps,
             )
             results.append(r)
             print(
@@ -458,9 +464,9 @@ def run_phase1(
         "scene_seed": scene_seed,
         "target_seed": target_seed,
         "nbv_seed": nbv_seed,
-        "n_targets": N_TARGETS,
+        "n_targets": n_targets,
         "n_views": N_VIEWS,
-        "max_nbv_steps": MAX_NBV_STEPS,
+        "max_nbv_steps": max_nbv_steps,
         "sinkhorn_epsilon": EPSILON,
         "summary": summary,
         "results": [asdict(r) for r in results],
@@ -513,9 +519,16 @@ def print_summary(summary: dict[str, dict[str, float]]) -> None:
 
 
 def main() -> None:
+    import os
+
     repo_root = Path(__file__).resolve().parents[1]
     out = repo_root / "experiments" / "results"
-    run_phase1(output_dir=out)
+    if os.environ.get("MOSAICRAFT_AV_BENCH_SMOKE"):
+        # CI smoke run: 1 target, 2 NBV steps. Verifies the harness
+        # imports + runs end-to-end without burning the CI minute budget.
+        run_phase1(output_dir=out, n_targets=1, max_nbv_steps=2)
+    else:
+        run_phase1(output_dir=out)
 
 
 if __name__ == "__main__":

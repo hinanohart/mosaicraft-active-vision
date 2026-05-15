@@ -5,7 +5,7 @@ memory at any moment. This file, plus `decision/`, plus `git log`, must
 contain enough state to fully resume work without re-asking the user
 anything. Update this file at the end of every step.
 
-**Last update:** 2026-05-16 — repo skeleton + 3 decisions SIGNED.
+**Last update:** 2026-05-16 — step 7 tests/ green (45/45).
 **Project root:** `/home/runza/oss/mosaicraft-active-vision/`
 **Upstream (R17 reuse target):** `/home/runza/oss/mosaicraft/` (will be
 git submoduled into `external/mosaicraft/`).
@@ -67,12 +67,13 @@ These are recorded so that a fresh Claude session can't re-litigate them.
 | `.gitignore` | ✅ | Python + R8 _wip protection | n/a |
 | `PROGRESS.md` | ✅ (this file) | bootstrap doc | n/a |
 | `src/mosaicraft_active_vision/__init__.py` | ✅ | version stub only | n/a |
-| `src/mosaicraft_active_vision/cost.py` | ✅ | mosaicraft feature+saliency wrapper + Oklab dist | ⬜ |
-| `src/mosaicraft_active_vision/matching.py` | ✅ | log-domain Sinkhorn (numpy, torch optional via geomloss later) | ⬜ |
-| `src/mosaicraft_active_vision/metrics.py` | ✅ | M1 mosaic_ssim_gain + sample_efficiency + M2 view_coverage | ⬜ |
-| `src/mosaicraft_active_vision/nbv.py` | ✅ | NBV loop + Random / SaliencyBiased strategies | ⬜ |
-| `tests/test_matching.py` | ⬜ | Sinkhorn marginal property tests | ⬜ |
-| `tests/test_metrics.py` | ⬜ | golden hash on tiny scene | ⬜ |
+| `src/mosaicraft_active_vision/cost.py` | ✅ | mosaicraft feature+saliency wrapper + Oklab dist | ✅ (12) |
+| `src/mosaicraft_active_vision/matching.py` | ✅ | log-domain Sinkhorn (numpy, torch optional via geomloss later) | ✅ (14) |
+| `src/mosaicraft_active_vision/metrics.py` | ✅ | M1 mosaic_ssim_gain + sample_efficiency + M2 view_coverage | ✅ (19) |
+| `src/mosaicraft_active_vision/nbv.py` | ✅ | NBV loop + Random / SaliencyBiased strategies | ⬜ (covered by Phase-1 bench) |
+| `tests/test_matching.py` | ✅ | Sinkhorn marginal property tests | n/a |
+| `tests/test_metrics.py` | ✅ | golden hash sha256[:8]=`869bdbdb` on 32x32 scene | n/a |
+| `tests/test_cost.py` | ✅ | Oklab + cost matrix sanity | n/a |
 | `experiments/benchmark_phase1.py` | ⬜ | 4 ablations | ⬜ |
 | `.github/workflows/ci.yml` | ⬜ | ruff + mypy + pytest + license check | ⬜ |
 | `external/mosaicraft/` (submodule) | ✅ | pinned to `2918137` (v0.3.2-32-g2918137) | n/a |
@@ -90,7 +91,7 @@ Every step ends with a git commit so resuming requires only
 | 4 ✅ | Implement `matching.py` (log-domain Sinkhorn) | `feat(matching): log-domain Sinkhorn-OT, numpy backend, argmax recovery` |
 | 5 ✅ | Implement `metrics.py` (M1) | `feat(metrics): mosaic_ssim_gain primary DoD + M2 view_coverage` |
 | 6 ✅ | Implement `nbv.py` (NBV loop) | `feat(nbv): NBV loop + Random / SaliencyBiased baselines` |
-| 7 | Tests | `test: Sinkhorn marginal property + metrics golden hash` |
+| 7 ✅ | Tests (45/45 passing) | `test: Sinkhorn marginal + metrics golden hash + cost sanity` |
 | 8 | Phase-1 benchmark + ablation harness | `bench: phase-1 benchmark, 4 ablations` |
 | 9 | CI workflow | `ci: ruff + mypy + pytest on push/PR` |
 | 10 | `gh repo create` + first push | n/a (no commit; remote operation) |

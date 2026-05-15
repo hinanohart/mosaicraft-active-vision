@@ -84,10 +84,12 @@ def mosaic_ssim(
                 f"data_range required for dtype {mosaic_bgr.dtype!r}; pass explicitly."
             )
     # skimage SSIM needs at least win_size pixels per axis (default 7).
-    # For tiny test images we shrink win_size.
-    win_size = min(7, min(mosaic_bgr.shape[:2]) | 1)  # odd, <=7
-    if win_size < 3:
+    # For tiny test images we shrink win_size to fit, but skimage requires
+    # win_size <= min(image side), so reject anything below 3 up-front.
+    min_side = int(min(mosaic_bgr.shape[:2]))
+    if min_side < 3:
         raise ValueError(f"image too small for SSIM: {mosaic_bgr.shape}. Need min side >= 3.")
+    win_size = min(7, min_side if min_side % 2 == 1 else min_side - 1)
     return float(
         _skimage_ssim(
             mosaic_bgr,

@@ -68,7 +68,7 @@ These are recorded so that a fresh Claude session can't re-litigate them.
 | `PROGRESS.md` | ✅ (this file) | bootstrap doc | n/a |
 | `src/mosaicraft_active_vision/__init__.py` | ✅ | version stub only | n/a |
 | `src/mosaicraft_active_vision/cost.py` | ✅ | mosaicraft feature+saliency wrapper + Oklab dist | ⬜ |
-| `src/mosaicraft_active_vision/matching.py` | ⬜ | log-domain Sinkhorn (numpy + opt torch) | ⬜ |
+| `src/mosaicraft_active_vision/matching.py` | ✅ | log-domain Sinkhorn (numpy, torch optional via geomloss later) | ⬜ |
 | `src/mosaicraft_active_vision/metrics.py` | ⬜ | M1 mosaic_ssim_gain | ⬜ |
 | `src/mosaicraft_active_vision/nbv.py` | ⬜ | next-best-view loop | ⬜ |
 | `tests/test_matching.py` | ⬜ | Sinkhorn marginal property tests | ⬜ |
@@ -87,7 +87,7 @@ Every step ends with a git commit so resuming requires only
 | 1 ✅ | Repo skeleton + 3 SIGNED decisions + PROGRESS.md | `init: skeleton, MIT license, signed decisions 001-003` (commit `d1b8886`) |
 | 2 ✅ | Add mosaicraft as git submodule (Phase 1 reuse) | `add mosaicraft submodule at external/mosaicraft, pinned to 2918137` |
 | 3 ✅ | Implement `cost.py` (Oklab + feature + saliency) | `feat(cost): Oklab perceptual distance + mosaicraft wrappers` |
-| 4 | Implement `matching.py` (log-domain Sinkhorn) | `feat(matching): log-domain Sinkhorn-OT, numpy + opt torch` |
+| 4 ✅ | Implement `matching.py` (log-domain Sinkhorn) | `feat(matching): log-domain Sinkhorn-OT, numpy backend, argmax recovery` |
 | 5 | Implement `metrics.py` (M1) | `feat(metrics): mosaic_ssim_gain primary DoD` |
 | 6 | Implement `nbv.py` (NBV loop) | `feat(nbv): next-best-view loop driven by mosaic SSIM gain` |
 | 7 | Tests | `test: Sinkhorn marginal property + metrics golden hash` |

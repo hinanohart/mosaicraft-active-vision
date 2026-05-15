@@ -1,0 +1,82 @@
+[build-system]
+requires = ["hatchling>=1.18"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mosaicraft-active-vision"
+version = "0.0.0"
+description = "Photomosaic-driven active vision: Sinkhorn-OT assignment with saliency marginals, next-best-view from mosaic reconstruction loss."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+    { name = "mosaicraft-active-vision contributors" },
+]
+keywords = [
+    "active-vision",
+    "next-best-view",
+    "optimal-transport",
+    "sinkhorn",
+    "photomosaic",
+    "computer-vision",
+]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.11",
+    "scikit-image>=0.22",
+    "opencv-python-headless>=4.8",
+]
+
+[project.optional-dependencies]
+gpu = [
+    "torch>=2.1",
+    "geomloss>=0.2.6",
+]
+bench = [
+    "matplotlib>=3.7",
+    "tqdm>=4.66",
+]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "ruff>=0.1",
+    "mypy>=1.8",
+]
+
+[project.urls]
+Homepage = "https://github.com/hinanohart/mosaicraft-active-vision"
+Issues = "https://github.com/hinanohart/mosaicraft-active-vision/issues"
+"Upstream mosaicraft" = "https://github.com/hinanohart/mosaicraft"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mosaicraft_active_vision"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",
+    "I",
+    "B",
+    "UP",
+    "SIM",
+    "RUF",
+]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q --strict-markers"

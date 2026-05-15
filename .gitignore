@@ -48,8 +48,12 @@ htmlcov/
 experiments/_wip/*
 !experiments/_wip/.gitkeep
 
-# Benchmark + bench plot outputs (must be regenerable)
-experiments/results/
+# Benchmark + bench plot outputs (must be regenerable). Pinned
+# baseline files (phase1_baseline_*.json) are carved out so reviewers
+# can diff future runs against the 2026-05-16 numbers.
+experiments/results/*
+!experiments/results/.gitkeep
+!experiments/results/phase1_baseline_*.json
 experiments/plots/
 
 # Vendored mosaicraft submodule build artifacts

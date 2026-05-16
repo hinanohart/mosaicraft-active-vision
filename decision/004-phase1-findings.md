@@ -30,7 +30,11 @@ publication can cite an honest baseline rather than a wishful one.
 | **A3 saliency OFF**         | 0.4375 ± 0.055 | +0.2781 |
 | **A4 Oklab OFF**            | 0.4177 ± 0.057 | +0.2581 |
 
-(JSON: `experiments/results/phase1_20260516T041014.json`.)
+(JSON: `experiments/results/phase1_baseline_2026-05-16.json` — the
+canonical committed baseline. The raw timestamped run files
+`phase1_20260516T041014.json` / `phase1_20260516T041517.json` are
+gitignored; only the renamed baseline copy is tracked so that
+`baseline-diff` CI can compare against a stable artifact.)
 
 ## Per-ablation reading
 

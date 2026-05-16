@@ -59,6 +59,7 @@ These are recorded so that a fresh Claude session can't re-litigate them.
 | `decision/002-evaluation-metric.md` | **SIGNED** | `002は最適で` |
 | `decision/003-matching-algorithm.md` | **SIGNED** | `003最適でエージェントが最適とゆってるやつで結果出てた` |
 | `decision/004-phase1-findings.md` | REPORTED | 2026-05-16 baseline run |
+| `decision/005-citation-corrections.md` | REPORTED | 2026-05-16 post-publication audit (no signature needed: corrections, not new adoption) |
 
 ## File-by-file status
 

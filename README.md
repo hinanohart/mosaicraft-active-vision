@@ -55,12 +55,17 @@ for the full discussion. Headlines:
 ## Why this exists (one paragraph)
 
 The literature has Sinkhorn-OT (Cuturi 2013), it has next-best-view
-planning (GenNBV, CVPR 2024), and it has photomosaic construction
-(mosaicraft). It does not have a system that **uses the photomosaic
-reconstruction loss as the NBV signal**, with the matching solved by
+planning (FisherRF ECCV 2024, ActiveSplat RA-L 2025, GenNBV CVPR
+2024), and it has photomosaic construction (mosaicraft). The gap
+this repo *plausibly* occupies is: **use the photomosaic
+reconstruction loss as the NBV signal**, with matching solved by
 entropic OT whose marginals carry mosaicraft's saliency weights.
-That is the gap this repo intends to occupy. Phase 1 establishes the
-empirical baseline; Phase 2 is the scientific contribution.
+**Unverified** until the prior-art search promised in
+`decision/000-charter.md` §72-73 is completed. Phase 1 establishes
+the empirical baseline; Phase 2 is the scientific contribution. The
+audit of the citations used to motivate the original decision pivot
+lives in
+[`decision/005-citation-corrections.md`](decision/005-citation-corrections.md).
 
 ## What this is NOT
 
@@ -111,9 +116,18 @@ record.
 
 ## Provenance
 
-Created 2026-05-16 as the outcome of a 4-agent debate (architect /
-critic / analyst / document-specialist) over how to extend `mosaicraft`
-into the most-innovative direction. See `decision/000-charter.md` for
-the debate record.
+Created 2026-05-16 from a 4-agent debate (architect / critic /
+analyst / document-specialist). The debate did **not** reach
+consensus: the architect ultimately recommended path A
+(refactor `mosaicraft` in place), the critic explicitly **rejected**
+immediate start of this path and proposed a 3-day spike on a smaller
+lucidrains PR instead, the analyst maintained C, and the
+document-specialist maintained C with a Hungarian→Sinkhorn
+modification. The integrated path (this repo) is closest to
+analyst + document-specialist; the critic's risk warning was
+partially borne out by `decision/004` (Hungarian outperforms
+Sinkhorn on the Phase-1 toy). Full record:
+[`decision/000-charter.md`](decision/000-charter.md) and
+[`decision/005-citation-corrections.md`](decision/005-citation-corrections.md).
 
 [mosaicraft]: https://github.com/hinanohart/mosaicraft

@@ -8,7 +8,7 @@ Three primitives are pulled from mosaicraft as-is:
 
     * ``mosaicraft.features.extract_features``      -- 191-dim color+texture
     * ``mosaicraft.saliency.compute_saliency_weights`` -- per-cell weights
-    * ``mosaicraft.color.bgr_to_oklab``             -- Oklab transform [Bottosson 2020]
+    * ``mosaicraft.color.bgr_to_oklab``             -- Oklab transform [Ottosson 2020]
 
 The only logic we **re-derive** here is the per-cell Oklab perceptual
 distance: mosaicraft fuses Oklab distance with a top-K Hungarian
@@ -18,7 +18,7 @@ have a top-K restriction.
 
 References
 ----------
-Bottosson, B. (2020). *A perceptual color space for image processing.*
+Ottosson, B. (2020). *A perceptual color space for image processing.*
     https://bottosson.github.io/posts/oklab/
 mosaicraft/placement.py L98-103 (commit 2918137) — the Hungarian-coupled
     Oklab fusion logic this module replaces.

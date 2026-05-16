@@ -117,7 +117,7 @@ def compute_tile_oklab_means(tile_bgr_list: list[NDArray]) -> NDArray:
     """
     if not tile_bgr_list:
         return np.empty((0, 3), dtype=np.float64)
-    means = np.empty((len(tile_bgr_list), 3), dtype=np.float64)
+    means: NDArray = np.empty((len(tile_bgr_list), 3), dtype=np.float64)
     for i, tile in enumerate(tile_bgr_list):
         means[i] = bgr_to_oklab(tile).mean(axis=(0, 1))
     return means

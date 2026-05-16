@@ -5,8 +5,9 @@ memory at any moment. This file, plus `decision/`, plus `git log`, must
 contain enough state to fully resume work without re-asking the user
 anything. Update this file at the end of every step.
 
-**Last update:** 2026-05-16 — step 9 CI workflow in place; lint+type+test
-green locally (45/45, mypy clean, ruff clean).
+**Last update:** 2026-05-16 — **step 10 SHIPPED** to
+https://github.com/hinanohart/mosaicraft-active-vision (public, MIT).
+CI green on py3.10 / 3.11 / 3.12, 45/45 tests, smoke bench < 5s.
 **Project root:** `/home/runza/oss/mosaicraft-active-vision/`
 **Upstream (R17 reuse target):** `/home/runza/oss/mosaicraft/` (will be
 git submoduled into `external/mosaicraft/`).
@@ -97,7 +98,7 @@ Every step ends with a git commit so resuming requires only
 | 7 ✅ | Tests (45/45 passing) | `test: Sinkhorn marginal + metrics golden hash + cost sanity` |
 | 8 ✅ | Phase-1 benchmark + 4 ablations + decision/004 | `bench: phase-1 + 4 ablations + decision/004 findings` |
 | 9 ✅ | CI workflow (ruff + mypy + pytest + smoke bench) | `ci: ruff + mypy + pytest + smoke bench on push/PR` |
-| 10 | `gh repo create` + first push | n/a (no commit; remote operation) |
+| 10 ✅ | `gh repo create` + push + fix CI mypy on py3.10/3.11 | `ci(mypy): follow_imports=skip + explicit NDArray annotation` |
 
 ## Where each user instruction lives (R16 audit trail)
 

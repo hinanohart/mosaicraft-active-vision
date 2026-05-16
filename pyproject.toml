@@ -87,6 +87,10 @@ strict_optional = true
 warn_unused_ignores = true
 warn_redundant_casts = true
 ignore_missing_imports = true
+# Type-check only this package; do not descend into third-party source.
+# scikit-image pulls tifffile, which uses py3.12-only PEP 695 `type`
+# statements that crash mypy under py3.10 / 3.11.
+follow_imports = "silent"
 # The mosaicraft submodule is sys.path-injected; mypy doesn't see it
 # without help, and we don't pin its typing.
 [[tool.mypy.overrides]]

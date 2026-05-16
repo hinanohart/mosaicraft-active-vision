@@ -58,6 +58,46 @@ PR has been stuck for 9 months on those last 10 %.
    `.. autofunction::` entry — small, but blocked by the docs build
    error the author hit.
 
+## 2026-05-16 — local rescue branch built (no fork/push yet)
+
+Built the additive rescue locally at `/tmp/POT` on top of upstream
+`master` (HEAD `41a4d57`). Branch name: `rescue-pr-724`. Patch file
+exported to `notes/pot-pr-724-rescue.patch` (492 lines, single
+commit, 5 files changed +371 −8). No fork, no push, no PR comment yet
+— that step is R14-gated and waits for user sign-off.
+
+What the patch adds:
+
+| File | Change |
+|---|---|
+| `ot/partial/partial_solvers.py` | `+ entropic_partial_wasserstein_logscale` after `entropic_partial_wasserstein` |
+| `ot/partial/__init__.py` | export the new function + add to `__all__` |
+| `test/test_partial.py` | 4 new test functions, 10 parametrised cases total |
+| `examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py` | Sphinx-Gallery example reproducing issue #723 + the fix |
+| `docs/source/user_guide.rst` | one-paragraph mention next to `entropic_partial_wasserstein` |
+
+Local verification (2026-05-16 22:34 +0900):
+
+* `pytest test/test_partial.py -q` → 17 passed (7 originals + 10 new).
+* Example script runs end-to-end with `MPLBACKEND=Agg`; standard
+  solver returns NaN at `reg ∈ {0.05, 0.01}` while the logscale
+  solver stays finite over the whole sweep — issue #723's failure
+  mode reproduced and fixed.
+
+Reason this is *additive*, not a rebase of the existing PR branch:
+the original PR was opened when `ot/partial.py` was a single file
+(March 2025); since then the maintainers split it into the
+`ot/partial/` package, so the diff against current master is +2k −13k
+lines of mostly-unrelated movement. Re-applying just the new
+function on the new layout is cleaner than fighting that rebase.
+
+User decisions needed before step 8:
+
+1. Fork to `hinanohart/POT` or to a personal account?
+2. Open a *new* PR (default) or push to the existing PR #724 branch?
+3. Author attribution — list as `Co-authored-by: wzm2256 <...>` (default,
+   pro-social) or only credit in the PR description?
+
 ## Execution plan (M4 in the decision/007 timeline)
 
 ```

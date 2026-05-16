@@ -14,12 +14,16 @@ improves Hungarian-assignment photomosaic active vision".)
 
 ## Target venues
 
-| Venue | Fit | Notes |
-|---|---|---|
-| Insights from Negative Results (ACL/EMNLP workshop series) | High | Built around the exact framing we have: Sinkhorn was the principled choice and we report that it loses. |
-| OTML (NeurIPS workshop on Optimal Transport in ML) | Medium-high | Headline matters here — Sinkhorn losing is a Sinkhorn-community insight, not a niche curiosity. |
-| arxiv preprint (cs.CV, cs.LG) | Always | Fallback / primary distribution channel even if no workshop accepts. |
-| ICLR Reproducibility Track | Possible | If we can find a published paper claiming Sinkhorn-OT for assignment-style problems and reproduce its setup, the falsification would land here. |
+| Venue | Fit | Deadline / dates (checked 2026-05-16) | Notes |
+|---|---|---|---|
+| Insights from Negative Results in NLP @ EMNLP 2026 | High | Workshop Oct 22-29 2026 Budapest; CFP TBA on insights-workshop.github.io | Built around the exact framing we have: Sinkhorn was the principled choice and we report that it loses. Caveat: it is an *NLP* venue; we are CV/active-vision. If editors view scope as strictly NLP, the next two rows are the fallback. |
+| ICBINB @ ICLR 2026 ("I Can't Believe It's Not Better") | Was High | **MISSED** — submission deadline was Jan 31 2026 | Sister negative-results venue, but ICLR-only and the 2026 instance closed before we had the result. ICBINB @ ICLR 2027 is the next shot if no earlier venue takes it. |
+| OTML @ NeurIPS 2026 (Optimal Transport in ML) | Medium-high | Not yet announced (NeurIPS 2026 dates only just published) | Headline matters here — Sinkhorn losing is a Sinkhorn-community insight, not a niche curiosity. |
+| NetNeg @ SIGCOMM 2026 (Negative Results in Network Measurements) | No fit | n/a | Listed only because it shows up in negative-results searches; networking-specific. |
+| arXiv preprint (cs.CV, cs.LG) | Always | Anytime | Primary distribution channel; workshop submissions can mirror an arXiv preprint. |
+| ICLR Reproducibility Track | Possible | TBA | If we can find a published paper claiming Sinkhorn-OT for assignment-style problems and reproduce its setup, the falsification would land here. |
+
+**Plan-of-record:** drop on arXiv as soon as figures + draft are camera-ready (a few days of work). Submit to Insights@EMNLP 2026 when its CFP opens. Hold OTML 2026 as a parallel target once announced. ICBINB 2026 is missed; do not retarget the work just to fit ICBINB 2027 — better to land sooner via arXiv + Insights.
 
 ## One-paragraph abstract (provisional, 110 words)
 
@@ -44,8 +48,8 @@ harness, and 100 % reproducible JSON are released under MIT.
 | C2 | Saliency-as-marginal is the principled OT framing; saliency-as-row-scale is the mosaicraft-era Hungarian hack. | `decision/006` §"What we believed entering Phase 2"; both framings benchmarked in `experiments/benchmark_phase2.py`. |
 | C3 | Hungarian beats every Sinkhorn variant we tried at 95 % paired bootstrap CI. | `decision/006-phase2-findings.md` headline table; `experiments/results/phase2_baseline_2026-05-16.json`. |
 | C4 | Oklch hue-rotation pool augmentation is L-preserving by construction (Ottosson 2020) and turns an N-tile pool into N·(1+k). | `oklch-aug/src/oklch_aug/rotate.py`, `oklch-aug/src/oklch_aug/pool.py`; `tests/test_rotate.py::test_L_is_preserved_within_uint8_quantisation`. |
-| C5 | Oklch pool augmentation **improves** Hungarian-assignment NBV final SSIM (+0.020, 95 % CI [+0.009, +0.032]). | `experiments/benchmark_phase3.py` `hungarian_oklch_aug` row; `experiments/results/phase3_20260516T215751.json`. |
-| C6 | Oklch pool augmentation **hurts** Sinkhorn-OT NBV final SSIM (−0.041, 95 % CI [−0.049, −0.034]). | Same harness, `sinkhorn_oklch_aug` row. |
+| C5 | Oklch pool augmentation **improves** Hungarian-assignment NBV final SSIM (+0.026, 95 % CI [+0.018, +0.036] on N=8×4 tighter run; +0.020 95 % CI [+0.009, +0.032] on the original N=4×4 baseline). | `experiments/benchmark_phase3.py` `hungarian_oklch_aug` row; `experiments/results/phase3_baseline_tight_2026-05-16.json` (primary) and `phase3_baseline_2026-05-16.json` (replication). |
+| C6 | Oklch pool augmentation **hurts** Sinkhorn-OT NBV final SSIM (−0.042, 95 % CI [−0.047, −0.037] on N=8×4 tighter run; −0.041 95 % CI [−0.049, −0.034] on the original N=4×4 baseline). | Same harness, `sinkhorn_oklch_aug` row, same two JSON files. |
 | C7 | The Sinkhorn-vs-Hungarian split under pool expansion is structural: entropic regularisation spreads transport mass over the near-duplicate Oklch variants, splitting the supply of useful tiles across redundant candidates. Hungarian, which solves for a 1:1 assignment, picks the single best variant. | Mechanism argument in §Discussion; supported by C5/C6 sign. |
 
 ## Negative results we own
@@ -182,16 +186,23 @@ Three subsections, terse:
 
 - [ ] Real-images Phase 3 run on the mosaicraft test fixtures
       (Phase 3 was on the hue-ring toy).
-- [ ] Repeat Phase 3 with N=8 seeds × N=4 targets for a tighter CI
-      (Phase 3 was N=4×4=16 paired runs).
-- [ ] Single figure: paired bootstrap intervals for Phase-2 ε sweep
+- [x] Repeat Phase 3 with N=8 seeds × N=4 targets for a tighter CI
+      — done 2026-05-16, both signs confirmed and CIs tightened.
+      See `experiments/results/phase3_baseline_tight_2026-05-16.json`.
+- [x] Single figure: paired bootstrap intervals for Phase-2 ε sweep
       and Phase-3 oklch-aug split, side-by-side.
-- [ ] Single figure: Oklab L-preservation diagnostic before vs after
+      → `paper/figures/fig_paired_ci.{pdf,png}` (generator
+      `paper/figures/make_fig_paired_ci.py`).
+- [x] Single figure: Oklab L-preservation diagnostic before vs after
       rotation (histogram of |ΔL| over a real image).
+      → `paper/figures/fig_L_preservation.{pdf,png}` (generator
+      `paper/figures/make_fig_L_preservation.py`).
 - [ ] Glossary of the four "defensible claims" from `decision/006`
       and which ones the preprint advances.
 - [ ] Author list / affiliations / acknowledgements.
-- [ ] OTML 2026 / Insights workshop deadlines — check.
+- [x] OTML 2026 / Insights workshop deadlines — checked 2026-05-16;
+      see Target venues table above (ICBINB 2026 missed; Insights@EMNLP
+      and OTML@NeurIPS CFPs not yet released).
 
 ## Tone / writing principles
 

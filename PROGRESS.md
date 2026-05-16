@@ -115,8 +115,14 @@ Every step ends with a git commit so resuming requires only
 | 17 ✅ | Phase-3 benchmark: Oklch pool aug x NBV (toy scene, 16 paired runs) — Hungarian+oklch_aug BEATS, Sinkhorn+oklch_aug WORSE; results/phase3_20260516T215751.json | `bench(phase3): Oklch pool aug x NBV — Hungarian gains +0.02, Sinkhorn loses 0.04` |
 | 18 ✅ | arXiv preprint outline (paper/outline.md — 7 headline claims, target venues, TODOs) | `docs(paper): add Insights/OTML preprint outline` |
 | 19 ✅ | POT PR #724 rescue plan (notes/pot-pr-724-rescue.md — investigation + 9-step execution plan, awaiting R14 user sign-off) | `docs(notes): POT PR #724 rescue investigation` |
-| 20 ⬜ | (gated) Push oklch-aug to GitHub + PyPI (R14 trigger) | TBD on user approval |
-| 21 ⬜ | (gated) Execute POT PR #724 rescue (R14 trigger) | TBD on user approval |
+| 20 ◐ | oklch-aug pushed to GitHub (public, MIT) at https://github.com/hinanohart/oklch-aug ; PyPI build artefacts ready (`oklch-aug/dist/`, twine check passed) but **upload remains user-only** (R11 forbids Claude holding the token — see `oklch-aug/PYPI_UPLOAD.md`) | `init: oklch-aug v0.0.0 — perceptual Oklch hue-rotation pool augmentation` (in oklch-aug repo) |
+| 21 ◐ | POT PR #724 rescue **local branch built** at `/tmp/POT` rescue-pr-724 (1 commit, 17/17 tests pass, example runs, docs entry added). Patch exported to `notes/pot-pr-724-rescue.patch`. Fork + push + PR comment still R14-gated. | local only |
+| 22 ✅ | CI fix: `oklch-aug` installed in workflow via git+ pin (commit `d6be154`); both `ci` and `security` checks green on main | `ci: install oklch-aug from git+ (fix ModuleNotFoundError after decision/007 split)` |
+| 23 ✅ | Phase-3 N=8×4 tighter CI run — Hungarian Δ=+0.026 [+0.018, +0.036] BEATS, Sinkhorn Δ=−0.042 [−0.047, −0.037] WORSE; both signs survive tightening | TBD on commit |
+| 24 ✅ | adapters: `oklch_aug.adapters.albumentations.OklchHueRotation` (ImageOnlyTransform) + `oklch_aug.adapters.kornia.OklchHueRotation` (`nn.Module`) — 41/41 tests pass with torch + albumentations installed | (in oklch-aug repo) |
+| 25 ✅ | Figures: `paper/figures/fig_paired_ci.{pdf,png}` (Phase 2 ε sweep + Phase 3 oklch-aug split, side-by-side) + `paper/figures/fig_L_preservation.{pdf,png}` (per-pixel ΔL\* histogram across the default hue schedule) | TBD on commit |
+| 26 ✅ | Full preprint draft at `paper/preprint.md` (≤ 8-page workshop length, 9 sections + 2 appendices, every claim cites a JSON snapshot or test) | TBD on commit |
+| 27 ✅ | Venue deadline survey (2026-05-16): ICBINB 2026 MISSED (Jan 31 deadline), Insights@EMNLP 2026 CFP TBA, OTML@NeurIPS 2026 TBA. arXiv is the plan-of-record. | TBD on commit |
 
 ## Where each user instruction lives (R16 audit trail)
 

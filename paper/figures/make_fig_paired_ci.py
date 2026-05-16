@@ -168,7 +168,10 @@ def main() -> None:
     ax_r.set_yticks(yidx3)
     ax_r.set_yticklabels(matchers)
     ax_r.set_xlabel("ΔSSIM (oklch_aug − no_aug)")
-    ax_r.set_title("Phase 3 — oklch-aug splits the matchers (N=8×4)", fontsize=11)
+    ax_r.set_title(
+        "Phase 3 — oklch-aug splits the matchers (N=32 = 8 seeds × 4 targets)",
+        fontsize=10,
+    )
     ax_r.grid(axis="x", alpha=0.3)
     ax_r.invert_yaxis()
 

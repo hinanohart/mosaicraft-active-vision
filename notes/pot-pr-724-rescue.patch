@@ -1,13 +1,17 @@
-From a4ce8cf10b68c50216818a6203a8450a7d12afb4 Mon Sep 17 00:00:00 2001
+From 2a1762c3d5f15c1f177a1696871d5e1f2c6cf7b6 Mon Sep 17 00:00:00 2001
 From: rescue-pr-724-prep <rescue@example.invalid>
 Date: Sat, 16 May 2026 22:33:58 +0900
-Subject: [PATCH] [MRG] entropic_partial_wasserstein_logscale: stable
+Subject: [PATCH] [WIP] entropic_partial_wasserstein_logscale: stable
  log-domain solver (rescue of #724)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
 Re-applies the function from PR #724 by wzm2256 on top of current
 master (the original PR is stuck at CONFLICTING since 2025-09; this
 takes the additive parts and skips the obsolete merges through the
-March-2025 single-file layout).
+March-2025 single-file layout). Subject is [WIP] because the original
+PR is also [WIP] and maintainer review is still required.
 
 Changes vs master:
 
@@ -22,41 +26,54 @@ Changes vs master:
 
   test/test_partial.py
     + test_entropic_partial_wasserstein_logscale_matches_old_at_large_reg
+      (machine-precision agreement at reg in {10.0, 1.0}: atol=1e-10)
     + test_entropic_partial_wasserstein_logscale_no_nan_at_small_reg
+      (parametrised over reg in {0.1, 0.05, 0.01, 5e-3, 1e-3, 5e-4})
+    + test_entropic_partial_wasserstein_logscale_approaches_exact_at_small_reg
+      (plan-cost gap vs exact partial OT at reg=1e-3)
     + test_entropic_partial_wasserstein_logscale_log_dict
     + test_entropic_partial_wasserstein_logscale_input_validation
 
   examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py
     + Sphinx-Gallery example reproducing issue #723 + the fix
-      (MPLBACKEND=Agg-safe).
+      (MPLBACKEND=Agg-safe; narrative softened to acknowledge
+      BLAS/platform-dependent underflow boundary).
 
   docs/source/user_guide.rst
     + one-paragraph mention next to entropic_partial_wasserstein.
 
   RELEASES.md
-    + entry under 0.9.7.dev0.
+    + entry under 0.9.7.dev0 (phrased as "mitigated via new log-domain
+      variant", not "fixed", since the standard solver itself is
+      unchanged).
 
-Verified locally: pytest test/ -> 1052 passed, 88 skipped, 4 xfailed
-(no regressions outside partial); the new function agrees with the
-standard solver at reg >= 1.0 (max diff < 1e-17) and stays finite
-at reg down to 5e-4 on a 50x50 cost-scale-~50 problem (the exact
-failure mode of issue #723).
+Verified locally on master at 41a4d57:
+  pytest test/ -> 1939 passed, 97 skipped, 6 xfailed (no regressions).
+  pytest test/test_partial.py -> 19 passed (8 originals + 11 new
+    parametrised cases for the logscale function).
+  Example script runs end-to-end with MPLBACKEND=Agg.
+  The new function agrees with the standard solver at reg >= 1.0 to
+  ~1e-18 absolute (atol=1e-10 in tests is conservative) and stays
+  finite at reg down to 5e-4 on a 50x50 cost-scale-~50 problem (the
+  exact failure mode of issue #723); std solver returns NaN at reg ~
+  0.05-0.01 on the same problem.
 
-Closes #723.
+References Issue #723. Maintainer review needed before merge — author
+attribution to wzm2256 retained via Co-authored-by trailer.
 
 Co-authored-by: wzm2256 <wzm2256@qq.com>
 ---
  RELEASES.md                                   |   2 +
  docs/source/user_guide.rst                    |   7 +-
- ...t_entropic_partial_wasserstein_logscale.py | 113 ++++++++++++
+ ...t_entropic_partial_wasserstein_logscale.py | 117 +++++++++++++
  ot/partial/__init__.py                        |   2 +
  ot/partial/partial_solvers.py                 | 165 ++++++++++++++++++
- test/test_partial.py                          |  80 +++++++++
- 6 files changed, 367 insertions(+), 2 deletions(-)
+ test/test_partial.py                          | 108 ++++++++++++
+ 6 files changed, 399 insertions(+), 2 deletions(-)
  create mode 100644 examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py
 
 diff --git a/RELEASES.md b/RELEASES.md
-index 0f8918c..637f8bb 100644
+index 0f8918c..49950a9 100644
 --- a/RELEASES.md
 +++ b/RELEASES.md
 @@ -14,9 +14,11 @@ This new release adds support for sparse cost matrices and a new lazy EMD solver
@@ -67,7 +84,7 @@ index 0f8918c..637f8bb 100644
  
  #### Closed issues
  
-+- Fix NaN regime of `entropic_partial_wasserstein` at small `reg` by adding a log-domain alternative (Issue #723)
++- Mitigate NaN regime of `entropic_partial_wasserstein` at small `reg` via a new log-domain alternative `entropic_partial_wasserstein_logscale` (Issue #723; the standard solver itself is unchanged — callers must opt into the log-domain variant)
  - Fix NumPy 2.x compatibility in Brenier potential bounds (PR #788)
  - Fix MSVC Windows build by removing __restrict__ keyword (PR #788)
  - Fix O(n³) performance bottleneck in sparse bipartite graph arc iteration (PR #785)
@@ -91,10 +108,10 @@ index bfdd367..3e3408c 100644
  
 diff --git a/examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py b/examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py
 new file mode 100644
-index 0000000..571a902
+index 0000000..33867a3
 --- /dev/null
 +++ b/examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py
-@@ -0,0 +1,113 @@
+@@ -0,0 +1,117 @@
 +# -*- coding: utf-8 -*-
 +"""
 +==========================================================================
@@ -118,7 +135,7 @@ index 0000000..571a902
 +underflow.
 +"""
 +
-+# Author: wzm2256 (original PR #724)
++# Author: wzm2256 <wzm2256@qq.com> (original PR #724)
 +# License: MIT License
 +
 +import numpy as np
@@ -147,9 +164,13 @@ index 0000000..571a902
 +# Sweep regularisation
 +# --------------------
 +#
-+# Run both solvers across a range of ``reg`` values. The standard solver
-+# starts returning NaN around ``reg <= 0.05``; the log-domain solver stays
-+# finite.
++# Run both solvers across a range of ``reg`` values. On this 50×50 problem
++# at cost-scale 50 the standard solver returns NaN at the ``reg`` values
++# closest to the underflow boundary (typically ``reg`` ~0.05–0.01 in our
++# runs, though the exact transition depends on the BLAS / platform's
++# float64 underflow behaviour); the log-domain solver stays finite over
++# the whole sweep, including the very small ``reg`` regime where the
++# standard exp(−M/reg) path would underflow to zero everywhere.
 +
 +regs = [1.0, 0.5, 0.1, 0.05, 0.01, 5e-3, 1e-3, 5e-4]
 +standard_finite = []
@@ -405,10 +426,10 @@ index 98a3eff..83a3c44 100755
      """Compute the GW gradient. Note: we can not use the trick in :ref:`[12] <references-gwgrad-partial>`
      as the marginals may not sum to 1.
 diff --git a/test/test_partial.py b/test/test_partial.py
-index 6e54c36..3c8edcb 100755
+index 6e54c36..f802560 100755
 --- a/test/test_partial.py
 +++ b/test/test_partial.py
-@@ -338,3 +338,83 @@ def test_partial_wasserstein_1d():
+@@ -338,3 +338,111 @@ def test_partial_wasserstein_1d():
  
          np.testing.assert_array_equal(np.sort(indices_x[:i]), np.sort(ind_x))
          np.testing.assert_array_equal(np.sort(indices_y[:i]), np.sort(ind_y))
@@ -436,8 +457,10 @@ index 6e54c36..3c8edcb 100755
 +        a, b, M, reg=reg, m=m, numItermax=2000
 +    )
 +
-+    np.testing.assert_allclose(G_old, G_log, atol=1e-4)
-+    np.testing.assert_allclose(G_log.sum(), m, atol=1e-4)
++    # At reg >= 1.0 the two solvers agree to machine precision; if this
++    # tightens it would indicate the logscale path silently diverged.
++    np.testing.assert_allclose(G_old, G_log, atol=1e-10, rtol=1e-10)
++    np.testing.assert_allclose(G_log.sum(), m, atol=1e-10)
 +
 +
 +@pytest.mark.parametrize("reg", [0.1, 0.05, 0.01, 5e-3, 1e-3, 5e-4])
@@ -462,6 +485,32 @@ index 6e54c36..3c8edcb 100755
 +    )
 +    assert np.isfinite(G).all(), f"non-finite plan at reg={reg}"
 +    np.testing.assert_allclose(G.sum(), m, atol=5e-3)
++
++
++def test_entropic_partial_wasserstein_logscale_approaches_exact_at_small_reg():
++    """At small `reg` the entropic plan should approach the exact partial
++    OT plan (modulo discretisation). Verifies the fix is mathematically
++    meaningful, not just NaN-free."""
++    rng = np.random.RandomState(3)
++    n = 30
++    a = np.ones(n) / n
++    b = np.ones(n) / n
++    M = ot.dist(rng.rand(n, 2), rng.rand(n, 2))
++    m = 0.5
++
++    G_exact = ot.partial.partial_wasserstein(a, b, M, m=m)
++    G_log = ot.partial.entropic_partial_wasserstein_logscale(
++        a, b, M, reg=1e-3, m=m, numItermax=5000
++    )
++
++    cost_exact = float((G_exact * M).sum())
++    cost_log = float((G_log * M).sum())
++    # The entropic objective is a relaxation of the exact one, so the
++    # plan-cost gap should be small but non-negative at reg → 0.
++    assert cost_log >= cost_exact - 1e-6
++    assert cost_log - cost_exact < 0.01, (
++        f"logscale plan cost {cost_log:.4f} diverges from exact {cost_exact:.4f}"
++    )
 +
 +
 +def test_entropic_partial_wasserstein_logscale_log_dict():

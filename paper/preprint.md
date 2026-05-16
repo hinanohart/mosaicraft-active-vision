@@ -62,9 +62,10 @@ evidence.
 1. **Sinkhorn-OT loses to Hungarian** on the toy in every variant we
    tried — three entropic regularisation strengths (ε ∈ {0.01, 0.05,
    0.1}), two saliency framings (row-scaling and source-marginal), and
-   the one-tile-per-cell uniqueness toggle. The 95% CI of the paired
-   Hungarian-minus-Sinkhorn difference is strictly above zero for all
-   12 Sinkhorn conditions (Figure 1, left panel).
+   the one-tile-per-cell uniqueness toggle. The 95% paired-bootstrap
+   CI of (Sinkhorn − Hungarian) ΔSSIM is strictly **below** zero for
+   all 12 Sinkhorn conditions (Figure 1, left panel; same sign
+   convention as Abstract and §5.2).
 2. **Oklch hue-rotation pool augmentation splits the matchers.** A
    simple L-preserving expansion of the tile pool — extracted from the
    mosaicraft photomosaic library and packaged as a standalone
@@ -248,18 +249,26 @@ Limitations §6.2. Code: `experiments/benchmark_phase{2,3}.py`.
 ## 5. Results
 
 ![Figure 1. Paired bootstrap 95% CIs. Left: every Phase-2 Sinkhorn
-variant minus the Hungarian baseline (all bars below zero — Hungarian
-dominates). Right: Phase-3 oklch-aug minus no-aug, for the two
-matchers (Hungarian gains, Sinkhorn loses). Bars are mean differences;
-error bars are 95% paired-bootstrap CIs.](figures/fig_paired_ci.png)
+variant minus the Hungarian baseline (all 12 bars below zero —
+Hungarian dominates); N=16 paired runs per condition (4 scene seeds ×
+4 target seeds). Right: Phase-3 oklch-aug minus no-aug, for the two
+matchers — Hungarian gains, Sinkhorn loses; N=32 paired runs per
+matcher (8 seeds × 4 targets). Bars are mean differences; error bars
+are 95% paired-bootstrap CIs (10⁴ resamples, percentile method).
+Marker colour uses the Okabe-Ito colorblind-safe palette: vermillion
+(#D55E00) = CI strictly above-or-below zero in the *worse* direction,
+bluish-green (#009E73) = CI strictly in the *better* direction, grey =
+CI crosses zero (tie).](figures/fig_paired_ci.png)
 
 ### 5.1 Phase 1 — first-pass headline
 
 Random-view selection vs. saliency-biased vs. mosaic-SSIM-gain
 strategies. Both saliency-biased and mosaic-SSIM-gain beat the random
 baseline on N=4×4 paired runs; see `decision/004` for the full
-4-ablation table (Phase 1 did not compute paired-bootstrap CIs, so the
-"sufficient" claim here is qualitative).
+4-ablation table. Phase 1 did not compute paired-bootstrap CIs — the
+verdict ("saliency- and SSIM-biased beat random") is qualitative and
+the Phase-2 / Phase-3 quantitative claims are computed independently
+from a re-collected run.
 
 ### 5.2 Phase 2 — Sinkhorn ε sweep, saliency framings, uniqueness
 
@@ -353,8 +362,11 @@ which the split flips, perhaps — is open.
   target_idx, seed)` and between-target variance is ≈10× between-seed
   variance in the Phase-3 results JSON. A cluster bootstrap over
   `target_idx` would widen the CIs, though the signs and rough
-  magnitudes are robust to seed choice (verified at 100 distinct
-  bootstrap seeds).
+  magnitudes are stable across **bootstrap-RNG seed** choice (verified
+  at 100 distinct bootstrap RNG seeds). Note: this is robustness of
+  the resampling distribution, *not* robustness across independent
+  experimental seeds — which is the open question the seed-extension
+  caveat below addresses.
 * **Phase 3 N=32 is a seed extension, not an independent replication.**
   The tight run extends seeds 0–3 (loose) to 0–7 on the same
   `(scene_seed, target_seed)` grid. Sign and CI shape are stable

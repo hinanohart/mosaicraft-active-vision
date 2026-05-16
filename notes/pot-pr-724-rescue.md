@@ -62,9 +62,13 @@ PR has been stuck for 9 months on those last 10 %.
 
 Built the additive rescue locally at `/tmp/POT` on top of upstream
 `master` (HEAD `41a4d57`). Branch name: `rescue-pr-724`. Patch file
-exported to `notes/pot-pr-724-rescue.patch` (single commit, +367/-2
-across 6 files). No fork, no push, no PR comment yet — that step is
-R14-gated and waits for user sign-off.
+exported to `notes/pot-pr-724-rescue.patch` (single commit, +399/-2
+across 6 files; 5 new test functions / 11 parametrised cases). No
+fork, no push, no PR comment yet — that step is R14-gated and waits
+for user sign-off.
+
+**Commit subject is `[WIP]`** (matching the original PR #724 convention
+— `[MRG]` is reserved for maintainer-ready states after review).
 
 ### Cleanup pass (2026-05-16, same evening)
 
@@ -90,7 +94,14 @@ re-exported with:
 
 The local author/committer are still placeholders
 (`rescue-pr-724-prep <rescue@example.invalid>`) because the actual
-identity belongs to whoever pushes. Before push:
+identity belongs to whoever pushes.
+
+**⚠ MANDATORY PRE-PUSH GATE — do not skip:** if you `git push` without
+amending, the placeholder `rescue@example.invalid` ends up in the
+public POT git history (`example.invalid` is RFC 2606 reserved so the
+worst case is a broken `mailto:` link, not a leak — but the commit
+author line itself is unfixable post-push without a force-push that
+the maintainers would have to perform). Run this exact command first:
 
 ```
 cd /tmp/POT
@@ -99,7 +110,7 @@ git -c user.name="<your name>" -c user.email="<your email>" \
 ```
 
 (or amend with `--author="..."`) so the GitHub PR shows the correct
-submitter.
+submitter. Verify with `git log -1 --format=fuller` before `git push`.
 
 What the patch adds:
 
@@ -112,11 +123,16 @@ What the patch adds:
 | `docs/source/user_guide.rst` | one-paragraph mention next to `entropic_partial_wasserstein` |
 | `RELEASES.md` | one-line entry under `0.9.7.dev0` |
 
-Local verification (2026-05-16):
+Local verification (2026-05-16, re-run after audit cleanup):
 
-* `pytest test/test_partial.py -q` → 18 passed (8 originals + 10 new).
-* `pytest test/` (full suite) → 1052 passed, 88 skipped, 4 xfailed —
-  no regression outside `partial`.
+* `pytest test/test_partial.py -q` → **19 passed** (8 originals + 11
+  parametrised cases for the new function, including a new
+  `approaches_exact_at_small_reg` case that checks the plan-cost gap
+  vs. the exact partial OT — not just NaN-freeness).
+* `pytest test/` (full suite) → **1939 passed, 97 skipped, 6 xfailed**
+  — no regression outside `partial`. (Earlier draft of these notes
+  cited `1052 passed, 88 skipped, 4 xfailed` — that was the count
+  from a much older POT release and is corrected here.)
 * Example script runs end-to-end with `MPLBACKEND=Agg`; standard
   solver returns NaN at `reg ∈ {0.05, 0.01}` while the logscale
   solver stays finite over the whole sweep — issue #723's failure

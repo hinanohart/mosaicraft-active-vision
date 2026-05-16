@@ -1,0 +1,49 @@
+cff-version: 1.2.0
+title: "mosaicraft-active-vision: photomosaic-driven active vision baseline"
+message: "If you use this software, please cite it."
+type: software
+authors:
+  - name: "mosaicraft-active-vision contributors"
+url: "https://github.com/hinanohart/mosaicraft-active-vision"
+license: MIT
+keywords:
+  - active-vision
+  - next-best-view
+  - optimal-transport
+  - sinkhorn
+  - photomosaic
+  - computer-vision
+references:
+  - type: article
+    title: "Sinkhorn Distances: Lightspeed Computation of Optimal Transport"
+    authors:
+      - family-names: Cuturi
+        given-names: Marco
+    year: 2013
+    journal: "Advances in Neural Information Processing Systems"
+    url: "https://arxiv.org/abs/1306.0895"
+  - type: article
+    title: "Computational Optimal Transport"
+    authors:
+      - family-names: Peyré
+        given-names: Gabriel
+      - family-names: Cuturi
+        given-names: Marco
+    year: 2019
+    journal: "Foundations and Trends in Machine Learning"
+    url: "https://arxiv.org/abs/1803.00567"
+  - type: generic
+    title: "A perceptual color space for image processing"
+    authors:
+      - family-names: Ottosson
+        given-names: Björn
+    year: 2020
+    url: "https://bottosson.github.io/posts/oklab/"
+  - type: article
+    title: "FisherRF: Active View Selection and Mapping with Radiance Fields using Fisher Information"
+    authors:
+      - family-names: Jiang
+        given-names: Wen
+    year: 2024
+    journal: "ECCV"
+    url: "https://arxiv.org/abs/2311.17874"

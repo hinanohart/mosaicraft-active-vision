@@ -37,6 +37,9 @@ jobs:
       - name: Install package and dev extras
         run: |
           python -m pip install --upgrade pip
+          # oklch-aug is a sibling repo (decision/007); pin to a SHA so
+          # CI is reproducible. Bump when oklch-aug lands on PyPI.
+          pip install "oklch-aug @ git+https://github.com/hinanohart/oklch-aug.git@7d869330d39885d497d19601df9d1a371a6fd24b"
           # mosaicraft is intentionally NOT pip-installed here — it
           # ships opencv-python while this repo pins
           # opencv-python-headless and they collide on cv2.

@@ -100,6 +100,11 @@ Every step ends with a git commit so resuming requires only
 | 8 ✅ | Phase-1 benchmark + 4 ablations + decision/004 | `bench: phase-1 + 4 ablations + decision/004 findings` |
 | 9 ✅ | CI workflow (ruff + mypy + pytest + smoke bench) | `ci: ruff + mypy + pytest + smoke bench on push/PR` |
 | 10 ✅ | `gh repo create` + push + fix CI mypy on py3.10/3.11 | `ci(mypy): follow_imports=skip + explicit NDArray annotation` |
+| 11 ✅ | Post-publication citation audit (decision/005) | `docs: post-publication citation audit + README honesty (decision/005)` |
+| 12 ✅ | CITATION.cff + verified primary sources | `docs: add CITATION.cff with verified primary-source references` |
+| 13 ✅ | Phase-2 bench harness + log-domain stability tests | `bench(phase2): saliency-as-marginal + ε sweep + multi-seed harness` |
+| 14 ✅ | Phase-2 findings (decision/006) — Hungarian still wins, statistically | TBD on commit |
+| 15 ⬜ | POT contribution (issue/PR for partial OT log-domain) | TBD |
 
 ## Where each user instruction lives (R16 audit trail)
 

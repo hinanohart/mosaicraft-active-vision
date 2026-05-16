@@ -54,6 +54,7 @@ experiments/_wip/*
 experiments/results/*
 !experiments/results/.gitkeep
 !experiments/results/phase1_baseline_*.json
+!experiments/results/phase2_baseline_*.json
 experiments/plots/
 
 # Vendored mosaicraft submodule build artifacts

@@ -26,21 +26,29 @@ exists in the runtime path — see `decision/003`.
 Reproduce: `python experiments/benchmark_phase1.py`. JSON output is
 written to `experiments/results/phase1_<timestamp>.json`.
 
-**Honest reading of these numbers** — see
-[`decision/004-phase1-findings.md`](decision/004-phase1-findings.md)
-for the full discussion. Headlines:
+## Phase-2 result (2026-05-16, ε sweep + saliency-as-marginal, statistically tested)
 
-1. Active-vision premise holds: saliency-biased view selection beats
-   random by +0.025 SSIM.
-2. On this toy scene with uniform marginals and `epsilon=0.05`,
-   Hungarian outperforms Sinkhorn-OT. The OT formulation is **not
-   abandoned** (it is the differentiable basis for Phase 2), but
-   the README does not claim Sinkhorn wins until the ε sweep and the
-   saliency-as-marginal experiment are run.
-3. mosaicraft's row-scaling saliency hurts in the OT context — its
-   correct usage is as the OT source marginal, deferred to Phase 2.
-4. Oklab and the 191-dim LAB features double-count colour; Phase 2
-   keeps one or the other, not both.
+`decision/004` had three hypotheses for why Hungarian beat Sinkhorn
+in Phase 1: ε was wrong, saliency was applied as a row-scale instead
+of as the OT marginal, and the greedy argmax wasted mass. Phase 2
+tests all three at N=4 seeds × N=4 targets with paired bootstrap
+95 % CIs.
+
+| Condition (best per family) | mean final SSIM | Δ vs Hungarian (95 % CI) |
+|---|---|---|
+| **hungarian** | **0.5024 ± 0.037** | — |
+| saliency-as-marginal, ε=0.1, greedy | 0.4747 ± 0.046 | −0.028 [−0.041, −0.015] |
+| saliency-as-marginal, ε=0.05, greedy | 0.4413 ± 0.046 | −0.061 [−0.073, −0.049] |
+| row-scale, ε=0.1, greedy | 0.4609 ± 0.048 | −0.041 [−0.053, −0.029] |
+
+**Every Sinkhorn variant we tried lost to Hungarian** with a 95 % CI
+strictly below zero. The "real" OT framing (saliency-as-marginal)
+beats the row-scale hack by a hair, but both lose. The honest
+verdict — and the discussion of what this repo's defensible claims
+actually are after this finding — is in
+[`decision/006-phase2-findings.md`](decision/006-phase2-findings.md).
+
+Reproduce: `python experiments/benchmark_phase2.py`.
 
 ## Read the decision docs first
 

@@ -26,9 +26,12 @@ PHASE3_TIGHT = REPO / "experiments" / "results" / "phase3_baseline_tight_2026-05
 PHASE3 = REPO / "experiments" / "results" / "phase3_baseline_2026-05-16.json"
 OUT_DIR = REPO / "paper" / "figures"
 
-# Color palette: red below zero, green above (matplotlib-blind-friendly).
-NEG = "#c0392b"
-POS = "#1e8449"
+# Color palette: Okabe-Ito colour-blind-safe scheme.
+#   NEG (vermillion) = bars whose 95% CI is strictly below zero.
+#   POS (bluish green) = bars whose 95% CI is strictly above zero.
+#   TIE (neutral grey) = bars whose CI straddles zero.
+NEG = "#D55E00"
+POS = "#009E73"
 TIE = "#7f8c8d"
 
 

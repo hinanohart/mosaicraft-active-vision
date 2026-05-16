@@ -23,17 +23,20 @@ GitHub: <https://github.com/hinanohart/mosaicraft-active-vision> and
 We benchmark Sinkhorn-OT against Hungarian assignment as the matching
 layer of a photomosaic-driven next-best-view (NBV) loop, and find that
 Hungarian outperforms log-domain Sinkhorn at every regularisation
-strength in our sweep (95% paired bootstrap CI strictly below zero on
-N=128 paired runs). We then ask whether augmenting the candidate tile
-pool with perceptually-uniform Oklch hue rotations — which we extract
-into a standalone library, `oklch-aug` — closes the gap. It does not:
-Oklch pool augmentation improves Hungarian by +0.026 SSIM
-(95% CI [+0.018, +0.036]) and *hurts* Sinkhorn by −0.042 SSIM
-(95% CI [−0.047, −0.037]) on the same paired harness (N=32). We argue
-this is a structural property of entropic OT distributing mass over
-near-duplicate candidates, not a tuning artefact, and we make every
-claim regenerable from a committed JSON file. Code, harness, library,
-and decision-by-decision audit trail are released under MIT.
+strength we tried (95% paired bootstrap CI strictly below zero across
+all 12 Sinkhorn conditions, N=16 paired runs per condition). We then
+ask whether augmenting the candidate tile pool with perceptually-uniform
+Oklch hue rotations — which we extract into a standalone library,
+`oklch-aug` — closes the gap. It does not: Oklch pool augmentation
+improves Hungarian by +0.026 SSIM (95% CI [+0.018, +0.036]) and *hurts*
+Sinkhorn by −0.042 SSIM (95% CI [−0.047, −0.037]) on the same paired
+harness (N=32 in the tight Phase 3 run). We argue this is consistent
+with a structural property of entropic OT distributing mass over
+near-duplicate candidates, though we did not measure the
+ε × oklch-aug interaction directly so we cannot rule out an
+ε-tuning component (Limitations §6.2). Every claim is regenerable
+from a committed JSON file. Code, harness, library, and
+decision-by-decision audit trail are released under MIT.
 
 ---
 
@@ -57,9 +60,9 @@ We report two findings that surprised us, both with paired-bootstrap
 evidence.
 
 1. **Sinkhorn-OT loses to Hungarian** on the toy in every variant we
-   tried — six entropic regularisation strengths, two saliency
-   framings (row-scaling and source-marginal), and the
-   one-tile-per-cell uniqueness toggle. The 95% CI of the paired
+   tried — three entropic regularisation strengths (ε ∈ {0.01, 0.05,
+   0.1}), two saliency framings (row-scaling and source-marginal), and
+   the one-tile-per-cell uniqueness toggle. The 95% CI of the paired
    Hungarian-minus-Sinkhorn difference is strictly above zero for all
    12 Sinkhorn conditions (Figure 1, left panel).
 2. **Oklch hue-rotation pool augmentation splits the matchers.** A
@@ -69,13 +72,15 @@ evidence.
    (95% CI [+0.018, +0.036]) and *hurts* Sinkhorn by −0.042 SSIM
    (95% CI [−0.047, −0.037]). Figure 1, right panel.
 
-We argue that the second finding is a structural property of entropic
-OT: when the candidate pool contains near-duplicate variants (the
-Oklch-rotated copies, which by construction share the same L channel
-as the originals), the entropic plan distributes mass across all of
-them, splitting useful supply over redundant rows. Hungarian's hard
-1:1 assignment does not have that failure mode and benefits
-unambiguously from the larger candidate set.
+We argue that the second finding is *consistent with* a structural
+property of entropic OT: when the candidate pool contains
+near-duplicate variants (the Oklch-rotated copies, which by
+construction share the same L channel as the originals), the entropic
+plan distributes mass across all of them, splitting useful supply over
+redundant rows. Hungarian's hard 1:1 assignment does not have that
+failure mode and benefits unambiguously from the larger candidate set.
+We did not run an ε sweep × oklch-aug ablation (see §6.2), so the
+"structural" framing is supported by but not proven from the data.
 
 Our contribution is therefore three things at once:
 
@@ -84,7 +89,7 @@ Our contribution is therefore three things at once:
 * A positive result on perceptual pool augmentation that *only*
   applies to the simpler matcher (§5.3).
 * `oklch-aug`, a small standalone library (numpy core, torch optional,
-  Albumentations / Kornia adapters) so the technique is reusable
+  Albumentations / Torch adapters) so the technique is reusable
   outside photomosaic NBV (§7).
 
 A negative result published with this much detail is rare; we take
@@ -140,9 +145,15 @@ roughly, a linearised CIELAB with parameters fit to MacAdam ellipses
 on Munsell data, giving better hue-uniformity. Its polar form Oklch
 splits chroma and hue, so rotating hue at constant L is a single
 trigonometric pass that preserves perceptual lightness exactly in the
-float representation. uint8 round-trip introduces sub-LSB
-quantisation; Figure 2 shows the |ΔL| histogram is concentrated below
-0.005 across our default schedule of rotation angles.
+float representation. Two effects move L away from the original in
+the uint8 pipeline: (i) sRGB gamut clipping — rotating chroma can
+push the result outside the displayable cube, the implementation
+clips, and the resulting Oklab L drifts; (ii) uint8 round-trip
+quantisation, which is sub-LSB. Figure 2 shows the |ΔL\*|
+distribution on a real high-chroma sample: across our default
+schedule the median |ΔL\*| stays below 0.002 (well sub-perceptual)
+but the long tail reaches max |ΔL\*| ≈ 0.04–0.07 — driven by gamut
+clipping, not quantisation.
 
 ### 2.5 Niche specificity vs. prior art
 
@@ -176,13 +187,14 @@ source-marginal framing, depending on the condition.
 * **Hungarian.** `scipy.optimize.linear_sum_assignment` on the
   Oklab perceptual-distance cost matrix. Saliency is applied as a
   row-scale.
-* **Sinkhorn-OT.** Log-domain numpy implementation with 200 max
-  iterations and ε swept across {0.005, 0.01, 0.025, 0.05, 0.1, 0.2}.
-  Two saliency framings (row-scale, source-marginal) and a uniqueness
-  toggle (force-1:1 by argmax-after-Sinkhorn vs. allow tied
-  assignments) give 6 × 2 × 2 = 24 condition labels, of which the
-  Phase 2 baseline reports 12 (the 12 saliency-as-marginal and
-  row-scale variants at three ε values).
+* **Sinkhorn-OT.** Log-domain numpy implementation with 100 max
+  iterations and ε swept across {0.01, 0.05, 0.1} for the
+  baseline JSON. Two saliency framings (row-scale, source-marginal) and
+  a uniqueness toggle (force-1:1 by argmax-after-Sinkhorn vs. allow
+  tied assignments) give 3 × 2 × 2 = 12 condition labels, all reported
+  in the Phase 2 baseline. The numerical-stability addendum in §5.4
+  separately sweeps ε down to 5e-4 to characterise the log-domain
+  solver itself (independent of the NBV claim).
 
 ### 3.3 Oklch hue-rotation pool augmentation
 
@@ -217,13 +229,19 @@ seed)` quadruple as its partner conditions, so paired-bootstrap CIs
 remove the scene/target variance. Phase 2 uses N=4 seeds × N=4 targets
 = 16 paired runs per condition. Phase 3 was originally also N=4×4=16
 runs; we re-ran with N=8×4=32 for tighter CIs (the headline N=32
-numbers in §1 and §5 are from the tight run).
+numbers in §1 and §5 are from the tight run). The tight run extends
+the original seed range from 0–3 to 0–7 on the same scene/target
+seeds, so the two runs are not statistically independent
+replications — see §6.2.
 
 ### 4.3 Statistical procedure
 
 Paired bootstrap with 5000 resamples and a fixed RNG seed. We report
-mean difference and (2.5%, 97.5%) quantiles as the 95% CI. Code:
-`experiments/benchmark_phase{2,3}.py`.
+mean difference and (2.5%, 97.5%) quantiles as the 95% CI (percentile
+method, two-sided). Resampling is i.i.d. over paired pairs; we did not
+use a cluster bootstrap over the target-index axis even though
+between-target variance dominates between-seed variance — see
+Limitations §6.2. Code: `experiments/benchmark_phase{2,3}.py`.
 
 ---
 
@@ -238,9 +256,10 @@ error bars are 95% paired-bootstrap CIs.](figures/fig_paired_ci.png)
 ### 5.1 Phase 1 — first-pass headline
 
 Random-view selection vs. saliency-biased vs. mosaic-SSIM-gain
-strategies. Saliency-biased and mosaic-SSIM-gain both beat random; the
-gap is sufficient to justify a non-trivial NBV policy. See
-`decision/004` for the full 4-ablation table.
+strategies. Both saliency-biased and mosaic-SSIM-gain beat the random
+baseline on N=4×4 paired runs; see `decision/004` for the full
+4-ablation table (Phase 1 did not compute paired-bootstrap CIs, so the
+"sufficient" claim here is qualitative).
 
 ### 5.2 Phase 2 — Sinkhorn ε sweep, saliency framings, uniqueness
 
@@ -326,7 +345,21 @@ which the split flips, perhaps — is open.
   would change the near-duplicate-cluster property of §6.1 and might
   not exhibit the split.
 * **Single ε for Phase 3.** Phase 3 uses ε = 0.1 (the Phase-2 best for
-  Sinkhorn). An ε sweep × oklch-aug interaction is unmeasured.
+  Sinkhorn). An ε sweep × oklch-aug interaction is unmeasured, which
+  is the main reason the Abstract softens the "structural property"
+  claim to "consistent with".
+* **i.i.d. paired bootstrap.** The CIs in §5 use i.i.d. resampling over
+  paired pairs. The pairing structure is `(scene_seed, target_seed,
+  target_idx, seed)` and between-target variance is ≈10× between-seed
+  variance in the Phase-3 results JSON. A cluster bootstrap over
+  `target_idx` would widen the CIs, though the signs and rough
+  magnitudes are robust to seed choice (verified at 100 distinct
+  bootstrap seeds).
+* **Phase 3 N=32 is a seed extension, not an independent replication.**
+  The tight run extends seeds 0–3 (loose) to 0–7 on the same
+  `(scene_seed, target_seed)` grid. Sign and CI shape are stable
+  between the two; we use the tighter run as the headline but the
+  loose run is preserved in `experiments/results/` for audit.
 * **No claim about embodied robotics.** The photomosaic reward is a
   specific instantiation of matching-driven NBV reward. Recent
   diffusion-policy and VLA literature (pi0.5, OpenVLA, RoboTwin 2.0,
@@ -373,26 +406,39 @@ d = oklab_distance(grid_means, tile_means)
 
 * **numpy core, torch optional.** The single-image rotate and the pool
   expander are pure numpy. The torch helper for `oklab_distance` and
-  the Kornia adapter live behind extras.
+  the torch adapter live behind extras.
 * **Channel-order parameter.** `channel_order={"rgb","bgr"}` keeps the
   function honest for both OpenCV-native (BGR) and PIL-/Albumentations-
   native (RGB) pipelines without coding two implementations.
-* **L preservation is provable, not advertised.** The math preserves
-  Oklab L exactly in float; uint8 round-trip introduces sub-LSB
-  quantisation only. Figure 2 shows the |ΔL| histogram across the
-  default rotation schedule on a sample image; max |ΔL| stays well
-  below 0.01 (Oklab L is in [0, 1]).
+* **L preservation: float-exact, gamut-clip-bounded.** The math
+  preserves Oklab L exactly in float. In the uint8 pipeline two effects
+  shift L away from the original: sub-LSB quantisation (negligible) and
+  sRGB gamut clipping (dominant once chroma is high enough that the
+  rotated colour leaves the sRGB cube). Figure 2 shows the |ΔL\*|
+  distribution on `tiles_sample.jpg` across the default rotation
+  schedule: median |ΔL\*| ≲ 0.002, but the tail reaches max
+  |ΔL\*| ≈ 0.04–0.07. The technique is therefore L-preserving in the
+  median-pixel sense but not as a hard upper bound; downstream users
+  who need a strict bound should restrict the chroma range upstream
+  or disable `protect_highlights` / `protect_shadows`.
 * **Adapters.** `oklch_aug.adapters.albumentations.OklchHueRotation`
   is an `ImageOnlyTransform` for use inside Albumentations or
-  AlbumentationsX pipelines; `oklch_aug.adapters.kornia.OklchHueRotation`
-  is a torch `nn.Module` that accepts (B, 3, H, W) float[0,1] tensors.
-  The torch wrapper round-trips through CPU numpy; a torch-native
-  autograd path is open follow-up.
+  AlbumentationsX pipelines (it gates dtype/shape and honours
+  `Compose(seed=...)` reproducibility);
+  `oklch_aug.adapters.torch.OklchHueRotation` is a plain torch
+  `nn.Module` that accepts (B, 3, H, W) float[0,1] tensors and warns
+  on `requires_grad=True`. The torch wrapper round-trips through CPU
+  numpy; a torch-native autograd path is open follow-up. The torch
+  adapter is deliberately not a `kornia.augmentation.AugmentationBase2D`
+  subclass — wrap it with your own kornia adapter if you need
+  `AugmentationSequential`-style composition.
 
-![Figure 2. Oklab L-preservation diagnostic on a real image. Per-pixel
-ΔL\* histograms across the default `HueRotatePool` schedule (+72°,
-+144°, +216°, +288°). Max |ΔL\*| ≤ 0.01 across all four angles
-(sub-perceptual at uint8 quantisation).](figures/fig_L_preservation.png)
+![Figure 2. Oklab L deviation under the default `HueRotatePool`
+schedule (+72°, +144°, +216°, +288°) on `tiles_sample.jpg`. Per-pixel
+|ΔL\*| histograms; subplot titles give the empirical max and 99th
+percentile per angle. The tail is driven by sRGB gamut clipping at
+constant Oklab L, not by uint8 quantisation; median |ΔL\*| stays
+≲ 0.002 across all four angles.](figures/fig_L_preservation.png)
 
 ### 7.3 Why a separate library
 

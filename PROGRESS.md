@@ -5,9 +5,13 @@ memory at any moment. This file, plus `decision/`, plus `git log`, must
 contain enough state to fully resume work without re-asking the user
 anything. Update this file at the end of every step.
 
-**Last update:** 2026-05-16 — **step 10 SHIPPED** to
+**Last update:** 2026-05-16 — **step 16 LOCAL.** `oklch-aug` lib (Layer 1)
+extracted to `/home/runza/oss/oklch-aug/` with 31 tests + ruff/mypy clean,
+and `cost.py:bgr_to_oklab` rewired (54/54 tests pass on
+`mosaicraft-active-vision`, phase1+phase2 smoke benches green). `oklch-aug`
+is **not yet** published to GitHub or PyPI; CI on this repo will need an
+install step once it is — see decision/007. Steps 1-10 shipped earlier to
 https://github.com/hinanohart/mosaicraft-active-vision (public, MIT).
-CI green on py3.10 / 3.11 / 3.12, 45/45 tests, smoke bench < 5s.
 **Project root:** `/home/runza/oss/mosaicraft-active-vision/`
 **Upstream (R17 reuse target):** `/home/runza/oss/mosaicraft/` (will be
 git submoduled into `external/mosaicraft/`).
@@ -60,6 +64,8 @@ These are recorded so that a fresh Claude session can't re-litigate them.
 | `decision/003-matching-algorithm.md` | **SIGNED** | `003最適でエージェントが最適とゆってるやつで結果出てた` |
 | `decision/004-phase1-findings.md` | REPORTED | 2026-05-16 baseline run |
 | `decision/005-citation-corrections.md` | REPORTED | 2026-05-16 post-publication audit (no signature needed: corrections, not new adoption) |
+| `decision/006-phase2-findings.md` | REPORTED | 2026-05-16 phase-2 ε sweep + saliency-as-marginal + paired bootstrap (no signature needed: reporting, not adoption) |
+| `decision/007-oklch-aug-extraction.md` | REPORTED | 2026-05-16 3-agent review → standalone `oklch-aug` lib (no signature needed: extraction, not new adoption) |
 
 ## File-by-file status
 
@@ -104,7 +110,13 @@ Every step ends with a git commit so resuming requires only
 | 12 ✅ | CITATION.cff + verified primary sources | `docs: add CITATION.cff with verified primary-source references` |
 | 13 ✅ | Phase-2 bench harness + log-domain stability tests | `bench(phase2): saliency-as-marginal + ε sweep + multi-seed harness` |
 | 14 ✅ | Phase-2 findings (decision/006) — Hungarian still wins, statistically | TBD on commit |
-| 15 ⬜ | POT contribution (issue/PR for partial OT log-domain) | TBD |
+| 15 ✅ | Oklch hue-rotation pool aug extracted to `oklch-aug` lib (/home/runza/oss/oklch-aug/, 31 tests pass) | `feat(extract): oklch-aug v0.0.0 — perceptual hue-rotation pool aug` |
+| 16 ✅ | `cost.py` rewired to import `bgr_to_oklab` from `oklch_aug` (54/54 tests pass, phase1+phase2 smoke green, ruff/mypy clean) | `refactor(cost): source bgr_to_oklab from oklch-aug (decision/007)` |
+| 17 ✅ | Phase-3 benchmark: Oklch pool aug x NBV (toy scene, 16 paired runs) — Hungarian+oklch_aug BEATS, Sinkhorn+oklch_aug WORSE; results/phase3_20260516T215751.json | `bench(phase3): Oklch pool aug x NBV — Hungarian gains +0.02, Sinkhorn loses 0.04` |
+| 18 ✅ | arXiv preprint outline (paper/outline.md — 7 headline claims, target venues, TODOs) | `docs(paper): add Insights/OTML preprint outline` |
+| 19 ✅ | POT PR #724 rescue plan (notes/pot-pr-724-rescue.md — investigation + 9-step execution plan, awaiting R14 user sign-off) | `docs(notes): POT PR #724 rescue investigation` |
+| 20 ⬜ | (gated) Push oklch-aug to GitHub + PyPI (R14 trigger) | TBD on user approval |
+| 21 ⬜ | (gated) Execute POT PR #724 rescue (R14 trigger) | TBD on user approval |
 
 ## Where each user instruction lives (R16 audit trail)
 

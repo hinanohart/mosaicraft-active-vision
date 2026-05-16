@@ -4,11 +4,15 @@ This module is the bridge between the upstream `mosaicraft` codebase
 (imported via the `external/mosaicraft` submodule) and this repo's
 Sinkhorn-OT matcher in :mod:`mosaicraft_active_vision.matching`.
 
-Three primitives are pulled from mosaicraft as-is:
+Two primitives are pulled from mosaicraft as-is:
 
     * ``mosaicraft.features.extract_features``      -- 191-dim color+texture
     * ``mosaicraft.saliency.compute_saliency_weights`` -- per-cell weights
-    * ``mosaicraft.color.bgr_to_oklab``             -- Oklab transform [Ottosson 2020]
+
+A third primitive, ``bgr_to_oklab``, was originally pulled from
+``mosaicraft.color``; as of ``decision/007-oklch-aug-extraction.md`` it
+is sourced from the standalone `oklch-aug` library (the math is the
+same Ottosson 2020 coefficients, bit-identical at uint8 precision).
 
 The only logic we **re-derive** here is the per-cell Oklab perceptual
 distance: mosaicraft fuses Oklab distance with a top-K Hungarian
@@ -32,6 +36,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+# Pip-installed top-level dependency (no sys.path injection required).
+# Source of truth for the Oklab transform since decision/007.
+from oklch_aug import bgr_to_oklab
+
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
@@ -52,7 +60,6 @@ else:  # pragma: no cover - missing submodule is an installation error
         "Run `git submodule update --init --recursive` from the repo root."
     )
 
-from mosaicraft.color import bgr_to_oklab  # noqa: E402
 from mosaicraft.features import FEATURE_DIM, extract_features  # noqa: E402
 from mosaicraft.saliency import compute_saliency_weights  # noqa: E402
 

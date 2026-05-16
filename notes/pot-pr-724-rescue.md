@@ -62,9 +62,44 @@ PR has been stuck for 9 months on those last 10 %.
 
 Built the additive rescue locally at `/tmp/POT` on top of upstream
 `master` (HEAD `41a4d57`). Branch name: `rescue-pr-724`. Patch file
-exported to `notes/pot-pr-724-rescue.patch` (492 lines, single
-commit, 5 files changed +371 −8). No fork, no push, no PR comment yet
-— that step is R14-gated and waits for user sign-off.
+exported to `notes/pot-pr-724-rescue.patch` (single commit, +367/-2
+across 6 files). No fork, no push, no PR comment yet — that step is
+R14-gated and waits for user sign-off.
+
+### Cleanup pass (2026-05-16, same evening)
+
+After an architect audit found two push-blockers, the patch was
+re-exported with:
+
+- **partial_wasserstein_1d auto-formatter drift removed**. The first
+  patch contained an unrelated `assert (...), "msg"` ↔
+  `assert ..., ("msg")` rewrite that an editor-side ruff hook had
+  introduced. The file is now byte-identical to master except for the
+  new function block.
+- **Co-authored-by trailer corrected** from
+  `<original PR #724 author>` placeholder to `<wzm2256@qq.com>` (the
+  email visible in upstream PR #724's commit `b067a68`), so GitHub's
+  co-author auto-link will fire when the PR is opened.
+- **RELEASES.md entry added** under `0.9.7.dev0` (POT convention —
+  the existing PRs all have one).
+- **Example author line** trimmed to a single `# Author: wzm2256
+  (original PR #724)` to avoid leaking the downstream `oklch-aug`
+  project name into an upstream POT example.
+- **Commit prefix** brought in line with POT convention
+  (`[MRG] ...` instead of `[rescue-PR-#724] ...`).
+
+The local author/committer are still placeholders
+(`rescue-pr-724-prep <rescue@example.invalid>`) because the actual
+identity belongs to whoever pushes. Before push:
+
+```
+cd /tmp/POT
+git -c user.name="<your name>" -c user.email="<your email>" \
+    commit --amend --no-edit --reset-author
+```
+
+(or amend with `--author="..."`) so the GitHub PR shows the correct
+submitter.
 
 What the patch adds:
 
@@ -75,14 +110,19 @@ What the patch adds:
 | `test/test_partial.py` | 4 new test functions, 10 parametrised cases total |
 | `examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py` | Sphinx-Gallery example reproducing issue #723 + the fix |
 | `docs/source/user_guide.rst` | one-paragraph mention next to `entropic_partial_wasserstein` |
+| `RELEASES.md` | one-line entry under `0.9.7.dev0` |
 
-Local verification (2026-05-16 22:34 +0900):
+Local verification (2026-05-16):
 
-* `pytest test/test_partial.py -q` → 17 passed (7 originals + 10 new).
+* `pytest test/test_partial.py -q` → 18 passed (8 originals + 10 new).
+* `pytest test/` (full suite) → 1052 passed, 88 skipped, 4 xfailed —
+  no regression outside `partial`.
 * Example script runs end-to-end with `MPLBACKEND=Agg`; standard
   solver returns NaN at `reg ∈ {0.05, 0.01}` while the logscale
   solver stays finite over the whole sweep — issue #723's failure
   mode reproduced and fixed.
+* `git diff master -- ot/partial/partial_solvers.py` shows exactly
+  one hunk: the new function block. Nothing else drifts.
 
 Reason this is *additive*, not a rebase of the existing PR branch:
 the original PR was opened when `ot/partial.py` was a single file

@@ -1,18 +1,21 @@
-From 87e1fc11859235edf96a6170cc8265b82a5c42da Mon Sep 17 00:00:00 2001
-From: rescue-pr-724-prep <noreply@example.com>
+From a4ce8cf10b68c50216818a6203a8450a7d12afb4 Mon Sep 17 00:00:00 2001
+From: rescue-pr-724-prep <rescue@example.invalid>
 Date: Sat, 16 May 2026 22:33:58 +0900
-Subject: [PATCH] [rescue-PR-#724] entropic_partial_wasserstein_logscale +
- tests + docs + example
+Subject: [PATCH] [MRG] entropic_partial_wasserstein_logscale: stable
+ log-domain solver (rescue of #724)
 
-Re-applies the function from #724 author wzm2256 on top of current
+Re-applies the function from PR #724 by wzm2256 on top of current
 master (the original PR is stuck at CONFLICTING since 2025-09; this
-takes the additive parts and skips the obsolete merges).
+takes the additive parts and skips the obsolete merges through the
+March-2025 single-file layout).
 
 Changes vs master:
 
   ot/partial/partial_solvers.py
-    + entropic_partial_wasserstein_logscale  (function body from #724,
-      author retained in commit message)
+    + entropic_partial_wasserstein_logscale  (function body verbatim
+      from PR #724 modulo: (a) duplicate sphinx label removed to avoid
+      build failure, (b) print warning -> warnings.warn(stacklevel=2)
+      for convention).
 
   ot/partial/__init__.py
     + entropic_partial_wasserstein_logscale export
@@ -25,28 +28,49 @@ Changes vs master:
 
   examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py
     + Sphinx-Gallery example reproducing issue #723 + the fix
+      (MPLBACKEND=Agg-safe).
 
   docs/source/user_guide.rst
-    + one-paragraph mention next to entropic_partial_wasserstein
+    + one-paragraph mention next to entropic_partial_wasserstein.
 
-All 17 test/test_partial.py tests pass on this branch (7 originals
-+ 10 new). The new function agrees with the standard solver at
-reg >= 1.0 (atol 1e-4) and stays finite at reg down to 5e-4 on a
-50x50 cost-scale-~50 problem (the exact failure mode of issue #723).
+  RELEASES.md
+    + entry under 0.9.7.dev0.
 
-The example uses MPLBACKEND=Agg-safe code so CI can render without
-a display.
+Verified locally: pytest test/ -> 1052 passed, 88 skipped, 4 xfailed
+(no regressions outside partial); the new function agrees with the
+standard solver at reg >= 1.0 (max diff < 1e-17) and stays finite
+at reg down to 5e-4 on a 50x50 cost-scale-~50 problem (the exact
+failure mode of issue #723).
 
-Co-authored-by: wzm2256 <original PR #724 author>
+Closes #723.
+
+Co-authored-by: wzm2256 <wzm2256@qq.com>
 ---
+ RELEASES.md                                   |   2 +
  docs/source/user_guide.rst                    |   7 +-
- ...t_entropic_partial_wasserstein_logscale.py | 113 +++++++++++
+ ...t_entropic_partial_wasserstein_logscale.py | 113 ++++++++++++
  ot/partial/__init__.py                        |   2 +
- ot/partial/partial_solvers.py                 | 177 +++++++++++++++++-
- test/test_partial.py                          |  80 ++++++++
- 5 files changed, 371 insertions(+), 8 deletions(-)
+ ot/partial/partial_solvers.py                 | 165 ++++++++++++++++++
+ test/test_partial.py                          |  80 +++++++++
+ 6 files changed, 367 insertions(+), 2 deletions(-)
  create mode 100644 examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py
 
+diff --git a/RELEASES.md b/RELEASES.md
+index 0f8918c..637f8bb 100644
+--- a/RELEASES.md
++++ b/RELEASES.md
+@@ -14,9 +14,11 @@ This new release adds support for sparse cost matrices and a new lazy EMD solver
+ - Add support for sparse cost matrices in EMD solver (PR #778, Issue #397)
+ - Added UOT1D with Frank-Wolfe in `ot.unbalanced.uot_1d` (PR #765)
+ - Add Sliced UOT and Unbalanced Sliced OT in `ot/unbalanced/_sliced.py` (PR #765)
++- Add numerically stable log-domain entropic partial Wasserstein solver `entropic_partial_wasserstein_logscale` (Issue #723)
+ 
+ #### Closed issues
+ 
++- Fix NaN regime of `entropic_partial_wasserstein` at small `reg` by adding a log-domain alternative (Issue #723)
+ - Fix NumPy 2.x compatibility in Brenier potential bounds (PR #788)
+ - Fix MSVC Windows build by removing __restrict__ keyword (PR #788)
+ - Fix O(n³) performance bottleneck in sparse bipartite graph arc iteration (PR #785)
 diff --git a/docs/source/user_guide.rst b/docs/source/user_guide.rst
 index bfdd367..3e3408c 100644
 --- a/docs/source/user_guide.rst
@@ -67,7 +91,7 @@ index bfdd367..3e3408c 100644
  
 diff --git a/examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py b/examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py
 new file mode 100644
-index 0000000..7e4b314
+index 0000000..571a902
 --- /dev/null
 +++ b/examples/unbalanced-partial/plot_entropic_partial_wasserstein_logscale.py
 @@ -0,0 +1,113 @@
@@ -94,7 +118,7 @@ index 0000000..7e4b314
 +underflow.
 +"""
 +
-+# Authors: wzm2256 (original PR #724 author), oklch-aug contributors
++# Author: wzm2256 (original PR #724)
 +# License: MIT License
 +
 +import numpy as np
@@ -205,7 +229,7 @@ index 9bb4d04..c7447a7 100644
      "gwloss_partial",
      "partial_gromov_wasserstein",
 diff --git a/ot/partial/partial_solvers.py b/ot/partial/partial_solvers.py
-index 98a3eff..615dd4a 100755
+index 98a3eff..83a3c44 100755
 --- a/ot/partial/partial_solvers.py
 +++ b/ot/partial/partial_solvers.py
 @@ -581,6 +581,171 @@ def entropic_partial_wasserstein(
@@ -380,25 +404,6 @@ index 98a3eff..615dd4a 100755
  def gwgrad_partial(C1, C2, T):
      """Compute the GW gradient. Note: we can not use the trick in :ref:`[12] <references-gwgrad-partial>`
      as the marginals may not sum to 1.
-@@ -1373,12 +1538,12 @@ def partial_wasserstein_1d(x_a, x_b, n_transported_samples=None, p=1):
-     if n_transported_samples is None:
-         n_transported_samples = min(x_a.shape[0], x_b.shape[0])
- 
--    assert (
--        x_a.ndim == 1 or x_a.ndim == 2 and x_a.shape[1] == 1
--    ), "partial_wasserstein_1d should only be used with monodimensional data"
--    assert (
--        x_b.ndim == 1 or x_b.ndim == 2 and x_b.shape[1] == 1
--    ), "partial_wasserstein_1d should only be used with monodimensional data"
-+    assert x_a.ndim == 1 or x_a.ndim == 2 and x_a.shape[1] == 1, (
-+        "partial_wasserstein_1d should only be used with monodimensional data"
-+    )
-+    assert x_b.ndim == 1 or x_b.ndim == 2 and x_b.shape[1] == 1, (
-+        "partial_wasserstein_1d should only be used with monodimensional data"
-+    )
- 
-     x_a_1d = nx.reshape(x_a, (-1,))
-     x_b_1d = nx.reshape(x_b, (-1,))
 diff --git a/test/test_partial.py b/test/test_partial.py
 index 6e54c36..3c8edcb 100755
 --- a/test/test_partial.py

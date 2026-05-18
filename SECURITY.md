@@ -1,8 +1,12 @@
 # Security Policy
 
-Report issues via GitHub Private Vulnerability Reporting:
+## Reporting a Vulnerability
+
+If you discover a security vulnerability, please report it via GitHub Private Vulnerability Reporting:
 https://github.com/hinanohart/mosaicraft-active-vision/security/advisories/new
 
-Please do not open public issues for these reports.
+Do not open public issues for security concerns.
 
-Triage within 72h on a best-effort basis. Only the latest tagged release is supported.
+## Supported Versions
+
+This repository is maintained on a best-effort basis. The latest commit on the default branch (`main`) is the only actively supported version.
